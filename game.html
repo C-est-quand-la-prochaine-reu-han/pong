@@ -2,77 +2,91 @@
 <head>
 </head>
 <body>
-	<div style="width: 100vw; height: 80vh;">
-		<div style="margin-left: auto; margin-right: auto; width: 1000px; margin-top: 20vh;">
-			<canvas width="1000" height="1000" id="canvas" style="border: solid 1px black;">
-			</canvas>
-		</div>
-	</div>
+  <div style="width: 100vw; height: 80vh;">
+    <div style="margin-left: auto; margin-right: auto; width: 1000px; margin-top: 20vh;">
+      <canvas width="1000" height="1000" id="canvas" style="border: solid 1px black;">
+      </canvas>
+    </div>
+  </div>
 
-	<script>
-		var pong_arena = {
-		  canvas : document.getElementById("canvas"),
-		  keys : {},
-		  start : function() {
-		    this.canvas.width = 1000;
-		    this.canvas.height = 1000;
-		    this.context = this.canvas.getContext("2d");
-		    document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-			this.interval =	setInterval(game_loop, 20);
-			window.addEventListener('keydown', function (e) {
-			  console.log(e.keyCode);
-			  if (e.keyCode === 38 || e.keyCode === 40)
-				e.preventDefault();
-			  pong_arena.keys = (pong_arena.keys || []);
-    		  pong_arena.keys[e.keyCode] = true;
-    		})
-    		window.addEventListener('keyup', function (e) {
-    		  pong_arena.keys[e.keyCode] = false;
-    		})
-		  },
-		  clear : function() {
-		    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-		  }
-		}
+  <script>
+    var pong_arena = {
+      canvas : document.getElementById("canvas"),
+      keys : {},
+      start : function() {
+        this.canvas.width = 1000;
+        this.canvas.height = 1000;
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        this.interval = setInterval(game_loop, 20);
+        window.addEventListener('keydown', function (e) {
+          if (e.keyCode === 38 || e.keyCode === 40)
+            e.preventDefault(); // prevents arrow scrolling while playing
+          pong_arena.keys = (pong_arena.keys || []);
+          pong_arena.keys[e.keyCode] = true;
+        });
+        window.addEventListener('keyup', function (e) {
+          pong_arena.keys[e.keyCode] = false;
+        });
+      },
+      clear : function() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      }
+    };
 
-		function component(width, height, color, x, y) {
-		  this.width = width;
-		  this.height = height;
-		  this.x = x;
-		  this.y = y;
-		  var ctx = pong_arena.context;
-		  ctx.fillStyle = color;
-		  ctx.fillRect(this.x, this.y, this.width, this.height);
+    function component(width, height, color, x, y) {
+      this.width = width;
+      this.height = height;
+      this.x = x;
+      this.y = y;
+      var ctx = pong_arena.context;
+      ctx.fillStyle = color;
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+    
+      this.update = function() {
+        ctx = pong_arena.context;
+        ctx.fillStyle = color;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+      }
+    };
+    
+    function startGame() {
+      pong_arena.start();
+      player1 = new component(10, 100, "black", 100, 450);
+      player2 = new component(10, 100, "black", 900, 450);
+    }
+    
+    function game_loop() {
+      pong_arena.clear();
+      if (pong_arena.keys[38])
+      { 
+        player2.y -= 10;
+        if (player2.y <= 0)
+          player2.y = 0;
+      }
+      if (pong_arena.keys[40])
+      {
+        player2.y += 10;
+        if (player2.y >= 900)
+          player2.y = 900;
+      }
+      if (pong_arena.keys[87])
+      {
+        player1.y -= 10;
+        if (player1.y <= 0)
+          player1.y = 0;
+      }
+      if (pong_arena.keys[83])
+      {
+        player1.y += 10;
+        if (player1.y >= 900)
+          player1.y = 900;
+      }
+      player1.update();
+      player2.update();
+    }
 
-		  this.update = function(){
-		    ctx = pong_arena.context;
-  		    ctx.fillStyle = color;
-			ctx.fillRect(this.x, this.y, this.width, this.height);
-		  }
-		}
+    startGame();
 
-		function startGame() {
-		  pong_arena.start();
-		  player1 = new component(10, 100, "black", 100, 450);
-		  player2 = new component(10, 100, "black", 900, 450);
-
-		}
-
-		function game_loop() {
-			pong_arena.clear();
-			if (pong_arena.keys[38])
-				player2.y -= 10;
-			if (pong_arena.keys[40])
-				player2.y += 10;
-			if (pong_arena.keys[87])
-				player1.y -= 10;
-			if (pong_arena.keys[83])
-				player1.y += 10;
-			player1.update();
-			player2.update();
-		}
-
-		startGame();
-
-	</script>
+  </script>
 </body>
