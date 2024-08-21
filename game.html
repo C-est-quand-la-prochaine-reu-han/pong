@@ -34,11 +34,12 @@
       }
     };
 
-    function component(width, height, color, x, y) {
+    function paddel(width, height, color, x, y) {
       this.width = width;
       this.height = height;
       this.x = x;
       this.y = y;
+      this.score = 0;
       var ctx = pong_arena.context;
       ctx.fillStyle = color;
       ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -49,15 +50,81 @@
         ctx.fillRect(this.x, this.y, this.width, this.height);
       }
     };
+
+    function ball() {
+      this.width = 10;
+      this.height = 10;
+      this.x = 500;
+      this.y = 500;
+      this.dirX = 2;
+      this.dirY = 0.2;
+      var ctx = pong_arena.context;
+      ctx.fillStyle = "red";
+      ctx.fillRect(this.x, this.y, this.width, this.height);
     
+      this.update = function() {
+        ctx = pong_arena.context;
+        ctx.fillStyle = "red";
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+      }
+
+      this.collidesWith = function(otherobj) {
+        var myleft = this.x;
+        var myright = this.x + (this.width);
+        var mytop = this.y;
+        var mybottom = this.y + (this.height);
+        var otherleft = otherobj.x;
+        var otherright = otherobj.x + (otherobj.width);
+        var othertop = otherobj.y;
+        var otherbottom = otherobj.y + (otherobj.height);
+        var crash = true;
+        if ((mybottom < othertop) ||
+        (mytop > otherbottom) ||
+        (myright < otherleft) ||
+        (myleft > otherright)) {
+          crash = false;
+        }
+        return crash;
+      }
+    };
+
+    function score(width, height, color, x, y, player) {
+      this.width = width;
+      this.height = height;
+      this.x = x;
+      this.y = y;
+      this.player = player;
+      this.update = function() {
+        this.text = player.score;
+        ctx = pong_arena.context;
+          ctx.font = this.width + " " + this.height;
+          ctx.fillStyle = color;
+          ctx.fillText(this.text, this.x, this.y);
+      }
+    }
+ 
     function startGame() {
       pong_arena.start();
-      player1 = new component(10, 100, "black", 100, 450);
-      player2 = new component(10, 100, "black", 900, 450);
+      player1 = new paddel(10, 100, "black", 100, 450);
+      player2 = new paddel(10, 100, "black", 900, 450);
+      score1 = new score("30px", "Consolas", "black", 900, 100, player1);
+      score2 = new score("30px", "Consolas", "black", 100, 100, player2);
+      ball = new ball();
     }
-    
-    function game_loop() {
-      pong_arena.clear();
+
+    function increase_ball_speed(ball) {
+      if (ball.dirX > 0)
+        ball.dirX += 0.001;
+      else
+        ball.dirX -= 0.001;
+    }
+
+    function move_ball(ball) {
+      ball.x += ball.dirX;
+      ball.y += ball.dirY;
+    }
+
+    function handle_player_movement(player1, player2) {
       if (pong_arena.keys[38])
       { 
         player2.y -= 10;
@@ -82,8 +149,57 @@
         if (player1.y >= 900)
           player1.y = 900;
       }
+    }
+
+    function handle_collision() {
+      // wall collisions
+      if (ball.y < 0 || ball.y > 1000)
+        ball.dirY = -ball.dirY;
+      // player collisions
+      if (ball.collidesWith(player1) || ball.collidesWith(player2))
+      {
+        if (ball.collidesWith(player1))
+        {
+          ball.dirY = 3 * (0.01 * (ball.y - player1.y) - 0.5);
+          ball.dirX = Math.abs(ball.dirX) + 0.01;
+          ball.x = 111;
+        }
+        if (ball.collidesWith(player2))
+        {
+          ball.dirY = 3 * (0.01 * (ball.y - player2.y) - 0.5);
+          ball.dirX = -Math.abs(ball.dirX) - 0.01;
+          ball.x = 889;
+        }
+      }
+    }
+
+    function handle_point() {
+      if (ball.x < 0)
+      {
+        player1.score++;
+        ball.x = 500;
+        ball.y = 500;
+      }
+      if (ball.x > 1000)
+      {
+        player2.score++;
+        ball.x = 500;
+        ball.y = 500;
+      }
+    }
+
+    function game_loop() {
+      move_ball(ball);
+      increase_ball_speed(ball);
+      handle_player_movement(player1, player2);
+      handle_collision();
+      handle_point();
+      pong_arena.clear();
       player1.update();
+      score1.update();
       player2.update();
+      score2.update();
+      ball.update();
     }
 
     startGame();
