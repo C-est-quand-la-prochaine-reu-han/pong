@@ -1,0 +1,19 @@
+pong :
+
+- accepter les connexions - OK
+- connecter 2 joueurs sur une seule partie - OK
+- authentifier les joueurs sur le serveur Django principal
+- enregistrer les scores dans la base de donnée
+
+- autoriser plusieurs parties en parallele
+
+- chronometrer le temps de jeu
+- arreter la partie au bout de 10min
+- arreter la partie au bout de 10 points d'ecarts
+
+- gerer la direction et la vitesse de la balle
+
+- gerer les rebonds
+- gerer les rebonds contre les murs
+- gerer les rebonds contre les trucs que manipulent les joueurs
+
