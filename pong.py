@@ -8,6 +8,7 @@ class Player:
     socket = None
     name = ""
     _height = 0
+    listeners = set()
 
     def __init__(self, connection=None, name=""):
         self._height = 50
@@ -18,58 +19,66 @@ class Player:
     def height(self):
         return self._height
 
-    def is_ready(self):
-        if self.socket is None: return False
-        if self.name == "":
-            return False
-        return True
-
-    def up(self):
+    async def up(self):
         self._height += 1
+        await self.game.notify(self.name + " : up")
 
-    def down(self):
+    async def down(self):
         self._height -= 1
+        await self.game.notify(self.name + " : down")
+
+    def register(self, game):
+        print(self.name + " has joined the game")
+        game.players.append(self)
+        self.game = game
 
 
 class Game:
-    players = None
+    players = []
     ball_pos = [50,50]
     ball_movement = [0,0]
     _status = "WAITING"
 
     def __init__(self):
-        self.players = []
         self.ball_movement = [random.randint(-10, 10), random.randint(-10, 10)]
         print("A new game is waiting for players")
 
-    @property
-    def status(self):
-        return self._status
+    async def notify(self, message):
+        for p in self.players:
+            await p.socket.send(message)
 
-    async def run_game(self, player):
-        print("A new player has appeared")
-        if len(self.players) > 2:
-            raise exception("Too many players.")
+    async def run(self):
         while True:
-            msg = await player.socket.recv()
-            if msg == "up":
-                print(player.name + " : up")
-                player.up()
-                await player.socket.send(str(player.height))
-            if msg == "down":
-                print(player.name + " : down")
-                player.down()
-                await player.socket.send(str(player.height))
+            time.sleep(0.2)
+            self.ball_pos[0] += self.ball_movement[0]
+            self.ball_pos[1] += self.ball_movement[1]
+            encoded_position = "pos:" + str(self.ball_pos[0]) + ":" + str(self.ball_pos[1])
+            self.notify(encoded_position)
 
 game = Game()
 
 async def pong(websocket):
-    global connections
     global game
     message = await websocket.recv()
 
-    newplayer = Player(connection=websocket, name=message)
-    await game.run_game(newplayer)
+    me = Player(connection=websocket, name=message)
+    me.register(game)
+    if (len(game.players) == 2):
+        asyncio.create_task(game.run())
+        game = Game()
+
+    try:
+        while True:
+            message = await me.socket.recv()
+            if message == "up":
+                await me.up()
+            if message == "down":
+                await me.down()
+    except Exception as e:
+        print(e)
+        for p in game.players:
+            p.socket.send("error")
+        game.players.clear()
 
 async def main():
     async with serve(pong, "localhost", 8765):
