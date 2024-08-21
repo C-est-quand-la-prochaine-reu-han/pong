@@ -160,13 +160,13 @@
       {
         if (ball.collidesWith(player1))
         {
-          ball.dirY = 3 * (0.01 * (ball.y - player1.y) - 0.5);
+          ball.dirY += 3 * (0.01 * (ball.y - player1.y) - 0.5);
           ball.dirX = Math.abs(ball.dirX) + 0.01;
           ball.x = 111;
         }
         if (ball.collidesWith(player2))
         {
-          ball.dirY = 3 * (0.01 * (ball.y - player2.y) - 0.5);
+          ball.dirY += 3 * (0.01 * (ball.y - player2.y) - 0.5);
           ball.dirX = -Math.abs(ball.dirX) - 0.01;
           ball.x = 889;
         }
