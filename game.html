@@ -160,11 +160,7 @@
     }
 
     function game_loop() {
-      move_ball(ball);
-      increase_ball_speed(ball);
       handle_player_movement(player1);
-      handle_collision();
-      handle_point();
       pong_arena.clear();
       player1.update();
       player2.update();
@@ -173,12 +169,15 @@
     }
 
     let name = window.prompt("Pls type your name", "j1");
+	let opponent = "";
 
     socket.onmessage = function (event) {
       console.log(event.data);
       if (event.data == "start")
-        return startGame();
-      if (event.data.startsWith(name + ":"))
+        startGame();
+	  if (event.data.startsWith("opponent:"))
+		opponent = event.data.split(":", 2)[1];
+      else if (event.data.startsWith(name + ":"))
       {
         if (event.data.endsWith("down"))
           player1.y += 10;
@@ -193,7 +192,7 @@
       {
         if (event.data.endsWith("down"))
           player2.y += 10;
-        else
+        else if (event.data.endsWith("up"))
           player2.y -= 10;
         if (player2.y < 0)
           player2.y = 0;
@@ -203,7 +202,6 @@
     }
 
     socket.send(name);
-    startGame();
 
   </script>
 </body>

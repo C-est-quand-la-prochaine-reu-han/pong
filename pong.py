@@ -26,6 +26,8 @@ class Player:
     def register(self, game):
         print(self.name + " has joined the game")
         game.watchers.append(self)
+        if len(game.watchers) == 2:
+            asyncio.create_task(game.run())
         self.game = game
 
 
@@ -38,20 +40,17 @@ class Game:
         self.ball_movement = [random.randint(-10, 10), random.randint(-10, 10)]
         print("A new game is waiting for players")
 
-    def notify(self, message):
-        broadcast(map(lambda x: x.socket, self.watchers), message)
-
     async def run(self):
-        while len(self.watchers) != 2:
-            time.sleep(0.5)
-        broadcast(map(lambda x: x.socket, self.watchers), "start")
+        await self.broadcast("start")
         while True:
-            try:
-                print("loop")
-                broadcast(map(lambda x: x.socket, self.watchers), "ok")
-                time.sleep(0.5)
-            except:
-                pass
+            pos = "pos:" + str(self.ball_pos[0]) + ":" + str(self.ball_pos[1])
+            print(pos)
+            await self.broadcast(pos)
+            await asyncio.sleep(1)
+
+    async def broadcast(self, message):
+        for w in self.watchers:
+            await w.socket.send(message)
 
 game = Game()
 
@@ -65,13 +64,13 @@ async def pong(websocket):
         message = await me.socket.recv()
         print(me.name + " : " + message)
         if message == "up":
-            broadcast(map(lambda x: x.socket, game.watchers), me.name + ":up")
+            await game.broadcast(me.name + ":up")
         if message == "down":
-            broadcast(map(lambda x: x.socket, game.watchers), me.name + ":down")
+            await game.broadcast(me.name + ":down")
 
 
 async def main():
     async with serve(pong, "localhost", 8765) as websocket:
-        await asyncio.get_running_loop().create_future()       
+        await asyncio.get_running_loop().create_future()
 
 asyncio.run(main())
