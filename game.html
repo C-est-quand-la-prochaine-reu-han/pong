@@ -177,6 +177,13 @@
         startGame();
 	  if (event.data.startsWith("opponent:"))
 		opponent = event.data.split(":", 2)[1];
+	  if (event.data.startsWith("pos:"))
+	  {
+		newpos = event.data.split(":")
+		ball.x = parseInt(newpos[1]);
+		ball.y = parseInt(newpos[2]);
+		ball.update()
+	  }
       else if (event.data.startsWith(name + ":"))
       {
         if (event.data.endsWith("down"))

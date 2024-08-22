@@ -1,7 +1,7 @@
 pong :
 
-- accepter les connexions - OK coté back
-- connecter 2 joueurs sur une seule partie - OK coté back
+- accepter les connexions - OK
+- connecter 2 joueurs sur une seule partie - OK
 
 - authentifier les joueurs sur le serveur Django principal
 - enregistrer les scores dans la base de donnée
@@ -12,8 +12,10 @@ pong :
 - arreter la partie au bout de 10min
 - arreter la partie au bout de 10 points d'ecarts
 
-- gerer la direction et la vitesse de la balle - OK coté front
+- gerer la direction et la vitesse de la balle - OK
 
-- gerer les rebonds contre les murs - OK coté front
-- gerer les rebonds contre les trucs que manipulent les joueurs - OK coté front
+- gerer les rebonds contre les murs
+- gerer les rebonds contre les paddels
 
+- identifier le joueur
+- afficher le jeu dans le bon sens lorsque le joueur est j2

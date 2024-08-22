@@ -43,10 +43,12 @@ class Game:
     async def run(self):
         await self.broadcast("start")
         while True:
+            self.ball_pos[0] += self.ball_movement[0]
+            self.ball_pos[1] += self.ball_movement[1]
             pos = "pos:" + str(self.ball_pos[0]) + ":" + str(self.ball_pos[1])
             print(pos)
             await self.broadcast(pos)
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.2)
 
     async def broadcast(self, message):
         for w in self.watchers:
