@@ -58,8 +58,8 @@
       this.height = 10;
       this.x = 500;
       this.y = 500;
-      this.dirX = -2;
-      this.dirY = 0.2;
+      this.dirX = 0;
+      this.dirY = 0;
       var ctx = pong_arena.context;
       ctx.fillStyle = "red";
       ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -173,33 +173,35 @@
     }
 
     let name = window.prompt("Pls type your name", "j1");
+
     socket.onmessage = function (event) {
       console.log(event.data);
-      if (event.data.startsWith("j1:"))
+      if (event.data == "start")
+        return startGame();
+      if (event.data.startsWith(name + ":"))
       {
         if (event.data.endsWith("down"))
           player1.y += 10;
         else
           player1.y -= 10;
-
         if (player1.y < 0)
           player1.y = 0;
         if (player1.y > 900)
           player1.y = 900;
       }
-      if (event.data.startsWith("j2:"))
+      else
       {
         if (event.data.endsWith("down"))
           player2.y += 10;
         else
           player2.y -= 10;
-
         if (player2.y < 0)
           player2.y = 0;
         if (player2.y > 900)
           player2.y = 900;
       }
     }
+
     socket.send(name);
     startGame();
 

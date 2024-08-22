@@ -15,10 +15,6 @@ class Player:
         self.name = name
         self.socket = connection
 
-    @property
-    def height(self):
-        return self._height
-
     async def up(self):
         self._height += 1
         await self.game.notify(self.name + " : up")
@@ -34,18 +30,28 @@ class Player:
 
 
 class Game:
-    ball_pos = [50,50]
+    ball_pos = [500,500]
     ball_movement = [0,0]
-    _status = "WAITING"
     watchers = []
-    player_count = 0
 
     def __init__(self):
         self.ball_movement = [random.randint(-10, 10), random.randint(-10, 10)]
         print("A new game is waiting for players")
 
-    async def notify(self, message):
+    def notify(self, message):
         broadcast(map(lambda x: x.socket, self.watchers), message)
+
+    async def run(self):
+        while len(self.watchers) != 2:
+            time.sleep(0.5)
+        broadcast(map(lambda x: x.socket, self.watchers), "start")
+        while True:
+            try:
+                print("loop")
+                broadcast(map(lambda x: x.socket, self.watchers), "ok")
+                time.sleep(0.5)
+            except:
+                pass
 
 game = Game()
 
@@ -65,8 +71,7 @@ async def pong(websocket):
 
 
 async def main():
-    async with serve(pong, "localhost", 8765):
-        await asyncio.get_running_loop().create_future()
+    async with serve(pong, "localhost", 8765) as websocket:
+        await asyncio.get_running_loop().create_future()       
 
 asyncio.run(main())
-
