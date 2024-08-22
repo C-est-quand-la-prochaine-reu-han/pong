@@ -10,6 +10,8 @@
   </div>
 
   <script>
+    var socket = new WebSocket("ws://localhost:8765");
+
     var pong_arena = {
       canvas : document.getElementById("canvas"),
       keys : {},
@@ -56,7 +58,7 @@
       this.height = 10;
       this.x = 500;
       this.y = 500;
-      this.dirX = 2;
+      this.dirX = -2;
       this.dirY = 0.2;
       var ctx = pong_arena.context;
       ctx.fillStyle = "red";
@@ -103,12 +105,12 @@
       }
     }
  
-    function startGame() {
+    async function startGame() {
       pong_arena.start();
       player1 = new paddel(10, 100, "black", 100, 450);
       player2 = new paddel(10, 100, "black", 900, 450);
-      score1 = new score("30px", "Consolas", "black", 900, 100, player1);
-      score2 = new score("30px", "Consolas", "black", 100, 100, player2);
+      score1 = new score("30px", "Consolas", "black", 100, 100, player1);
+      score2 = new score("30px", "Consolas", "black", 900, 100, player2);
       ball = new ball();
     }
 
@@ -124,52 +126,27 @@
       ball.y += ball.dirY;
     }
 
-    function handle_player_movement(player1, player2) {
-      if (pong_arena.keys[38])
-      { 
-        player2.y -= 10;
-        if (player2.y <= 0)
-          player2.y = 0;
-      }
-      if (pong_arena.keys[40])
-      {
-        player2.y += 10;
-        if (player2.y >= 900)
-          player2.y = 900;
-      }
+    function handle_player_movement(player1) {
       if (pong_arena.keys[87])
       {
-        player1.y -= 10;
-        if (player1.y <= 0)
-          player1.y = 0;
+        console.log("up");
+        socket.send("up");
       }
       if (pong_arena.keys[83])
       {
-        player1.y += 10;
-        if (player1.y >= 900)
-          player1.y = 900;
+        console.log("down");
+        socket.send("down");
       }
     }
 
     function handle_collision() {
-      // wall collisions
       if (ball.y < 0 || ball.y > 1000)
         ball.dirY = -ball.dirY;
-      // player collisions
-      if (ball.collidesWith(player1) || ball.collidesWith(player2))
+      if (ball.collidesWith(player1))
       {
-        if (ball.collidesWith(player1))
-        {
-          ball.dirY += 3 * (0.01 * (ball.y - player1.y) - 0.5);
-          ball.dirX = Math.abs(ball.dirX) + 0.01;
-          ball.x = 111;
-        }
-        if (ball.collidesWith(player2))
-        {
-          ball.dirY += 3 * (0.01 * (ball.y - player2.y) - 0.5);
-          ball.dirX = -Math.abs(ball.dirX) - 0.01;
-          ball.x = 889;
-        }
+        ball.dirY += 3 * (0.01 * (ball.y - player1.y) - 0.5);
+        ball.dirX = Math.abs(ball.dirX) + 0.01;
+        ball.x = 111;
       }
     }
 
@@ -180,28 +157,50 @@
         ball.x = 500;
         ball.y = 500;
       }
-      if (ball.x > 1000)
-      {
-        player2.score++;
-        ball.x = 500;
-        ball.y = 500;
-      }
     }
 
     function game_loop() {
       move_ball(ball);
       increase_ball_speed(ball);
-      handle_player_movement(player1, player2);
+      handle_player_movement(player1);
       handle_collision();
       handle_point();
       pong_arena.clear();
       player1.update();
-      score1.update();
       player2.update();
-      score2.update();
+      score1.update();
       ball.update();
     }
 
+    let name = window.prompt("Pls type your name", "j1");
+    socket.onmessage = function (event) {
+      console.log(event.data);
+      if (event.data.startsWith("j1:"))
+      {
+        if (event.data.endsWith("down"))
+          player1.y += 10;
+        else
+          player1.y -= 10;
+
+        if (player1.y < 0)
+          player1.y = 0;
+        if (player1.y > 900)
+          player1.y = 900;
+      }
+      if (event.data.startsWith("j2:"))
+      {
+        if (event.data.endsWith("down"))
+          player2.y += 10;
+        else
+          player2.y -= 10;
+
+        if (player2.y < 0)
+          player2.y = 0;
+        if (player2.y > 900)
+          player2.y = 900;
+      }
+    }
+    socket.send(name);
     startGame();
 
   </script>

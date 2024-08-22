@@ -2,13 +2,13 @@ import time
 import random
 import asyncio
 from websockets.asyncio.server import serve
+from websockets.asyncio.server import broadcast
 from websockets.exceptions import ConnectionClosedOK
 
 class Player:
     socket = None
     name = ""
     _height = 0
-    listeners = set()
 
     def __init__(self, connection=None, name=""):
         self._height = 50
@@ -29,31 +29,23 @@ class Player:
 
     def register(self, game):
         print(self.name + " has joined the game")
-        game.players.append(self)
+        game.watchers.append(self)
         self.game = game
 
 
 class Game:
-    players = []
     ball_pos = [50,50]
     ball_movement = [0,0]
     _status = "WAITING"
+    watchers = []
+    player_count = 0
 
     def __init__(self):
         self.ball_movement = [random.randint(-10, 10), random.randint(-10, 10)]
         print("A new game is waiting for players")
 
     async def notify(self, message):
-        for p in self.players:
-            await p.socket.send(message)
-
-    async def run(self):
-        while True:
-            time.sleep(0.2)
-            self.ball_pos[0] += self.ball_movement[0]
-            self.ball_pos[1] += self.ball_movement[1]
-            encoded_position = "pos:" + str(self.ball_pos[0]) + ":" + str(self.ball_pos[1])
-            self.notify(encoded_position)
+        broadcast(map(lambda x: x.socket, self.watchers), message)
 
 game = Game()
 
@@ -63,22 +55,14 @@ async def pong(websocket):
 
     me = Player(connection=websocket, name=message)
     me.register(game)
-    if (len(game.players) == 2):
-        asyncio.create_task(game.run())
-        game = Game()
+    while True:
+        message = await me.socket.recv()
+        print(me.name + " : " + message)
+        if message == "up":
+            broadcast(map(lambda x: x.socket, game.watchers), me.name + ":up")
+        if message == "down":
+            broadcast(map(lambda x: x.socket, game.watchers), me.name + ":down")
 
-    try:
-        while True:
-            message = await me.socket.recv()
-            if message == "up":
-                await me.up()
-            if message == "down":
-                await me.down()
-    except Exception as e:
-        print(e)
-        for p in game.players:
-            p.socket.send("error")
-        game.players.clear()
 
 async def main():
     async with serve(pong, "localhost", 8765):
