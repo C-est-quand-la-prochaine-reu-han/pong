@@ -140,14 +140,6 @@
     }
 
     function handle_collision() {
-      if (ball.y < 0 || ball.y > 1000)
-        ball.dirY = -ball.dirY;
-      if (ball.collidesWith(player1))
-      {
-        ball.dirY += 3 * (0.01 * (ball.y - player1.y) - 0.5);
-        ball.dirX = Math.abs(ball.dirX) + 0.01;
-        ball.x = 111;
-      }
     }
 
     function handle_point() {
@@ -171,12 +163,26 @@
     let name = window.prompt("Pls type your name", "j1");
 	let opponent = "";
 
+	var controlled_player = undefined;
+	var other_player = undefined;
+	var game_running = false;
+
     socket.onmessage = function (event) {
-      console.log(event.data);
-      if (event.data == "start")
+      if (event.data === "start")
         startGame();
+	  if (event.data === "youare:1")
+	  {
+		controlled_player = player1;
+		other_player = player2;
+	  }
+	  if (event.data === "youare:2")
+	  {
+		controlled_player = player2;
+		other_player = player1;
+	  }
 	  if (event.data.startsWith("opponent:"))
 		opponent = event.data.split(":", 2)[1];
+
 	  if (event.data.startsWith("pos:"))
 	  {
 		newpos = event.data.split(":")
@@ -184,27 +190,29 @@
 		ball.y = parseInt(newpos[2]);
 		ball.update()
 	  }
+	  if (controlled_player === undefined || other_player === undefined)
+		return ;
       else if (event.data.startsWith(name + ":"))
       {
         if (event.data.endsWith("down"))
-          player1.y += 10;
+          controlled_player.y += 10;
         else
-          player1.y -= 10;
-        if (player1.y < 0)
-          player1.y = 0;
-        if (player1.y > 900)
-          player1.y = 900;
+          controlled_player.y -= 10;
+        if (controlled_player.y < 0)
+          controlled_player.y = 0;
+        if (controlled_player.y > 900)
+          controlled_player.y = 900;
       }
       else
       {
         if (event.data.endsWith("down"))
-          player2.y += 10;
+          other_player.y += 10;
         else if (event.data.endsWith("up"))
-          player2.y -= 10;
-        if (player2.y < 0)
-          player2.y = 0;
-        if (player2.y > 900)
-          player2.y = 900;
+          other_player.y -= 10;
+        if (other_player.y < 0)
+          other_player.y = 0;
+        if (other_player.y > 900)
+          other_player.y = 900;
       }
     }
 

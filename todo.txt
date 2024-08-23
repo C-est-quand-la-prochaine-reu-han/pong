@@ -3,19 +3,33 @@ pong :
 - accepter les connexions - OK
 - connecter 2 joueurs sur une seule partie - OK
 
-- authentifier les joueurs sur le serveur Django principal
-- enregistrer les scores dans la base de donnée
-
 - autoriser plusieurs parties en parallele
+
+- gerer la direction et la vitesse de la balle - OK
+
+- gérer le score - OK
+- gerer les rebonds contre les murs - OK
+- gerer les rebonds contre les paddels - OK mais buggé
+
+- enregistrer les scores dans la base de donnée
+- authentifier les joueurs sur le serveur Django principal
 
 - chronometrer le temps de jeu
 - arreter la partie au bout de 10min
 - arreter la partie au bout de 10 points d'ecarts
 
-- gerer la direction et la vitesse de la balle - OK
-
-- gerer les rebonds contre les murs
-- gerer les rebonds contre les paddels
-
 - identifier le joueur
 - afficher le jeu dans le bon sens lorsque le joueur est j2
+
+- afficher le joueur du bon coté
+
+
+Protocole de transmission :
+
+start							=> début de partie
+youare:<index>					=> tu es j1 ou tu es j2
+opponent:<pseudo>				=> nom de l'adversaire
+score:<pseudo>:<valeur>			=> changement de score
+pos:<balle_x>:<balle_y>			=> mouvement de la balle
+winner:<pseudo>					=> announce the winner
+
