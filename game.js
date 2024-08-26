@@ -8,8 +8,6 @@ var pong_arena = {
 		document.body.insertBefore(this.canvas, document.body.childNodes[0]);
 		this.interval = setInterval(game_loop, 20);
 		window.addEventListener('keydown', function (e) {
-			if (e.keyCode === 38 || e.keyCode === 40)
-			e.preventDefault(); // prevents arrow scrolling while playing
 			pong_arena.keys = (pong_arena.keys || []);
 			pong_arena.keys[e.keyCode] = true;
 		});
@@ -73,7 +71,6 @@ function score(width, height, color, x, y, player) {
 }
 
 async function startGame() {
-	console.log("game is starting");
 	pong_arena.start();
 	player1 = new paddel(10, 100, "black", 100, 450);
 	player2 = new paddel(10, 100, "black", 900, 450);
@@ -93,9 +90,16 @@ function move_ball(ball) {
 
 function handle_player_movement(player1) {
 	if (pong_arena.keys[87])
+	{
 		socket.send("up");
+		controlled_player.y -= 10;
+	}
 	if (pong_arena.keys[83])
+	{
 		socket.send("down");
+		controlled_player.y += 10;
+	}
+	controlled_player.update();
 }
 
 function game_loop() {
@@ -104,11 +108,12 @@ function game_loop() {
 	player1.update();
 	player2.update();
 	score1.update();
+	score2.update();
 	move_ball(ball);
 	ball.update();
 }
 
-var socket = new WebSocket("ws://10.18.196.30:8765");
+var socket = new WebSocket("ws://localhost:8765");
 
 let name = window.prompt("Pls type your name", "");
 let opponent = "";
@@ -134,6 +139,17 @@ socket.onmessage = function (event) {
 	}
 	if (event.data.startsWith("score:"))
 	{
+		data = event.data.split(":");
+		if (data[1] == player1.name)
+		{
+			player1.score++;
+			score1.update();
+		}
+		else if (data[1] == player2.name)
+		{
+			player2.score++;
+			score2.update();
+		}
 		ball.x = 500;
 		ball.y = 500;
 	}
@@ -142,25 +158,23 @@ socket.onmessage = function (event) {
 	if (event.data.startsWith("mov:"))
 	{
 		newdir = event.data.split(":")
-		ball.dirX = parseInt(newdir[1]);
-		ball.dirY = parseInt(newdir[2]);
-		console.log(event.data);
+		ball.dirY = parseInt(newdir[1]);
+		ball.dirX = parseInt(newdir[2]);
 	}
 	if (event.data.startsWith("pos:"))
 	{
 		newpos = event.data.split(":");
-		ball.x = parseInt(newpos[1]);
-		ball.y = parseInt(newpos[2]);
-		console.log(event.data);
+		ball.y = parseInt(newpos[1]);
+		ball.x = parseInt(newpos[2]);
 	}
 	if (controlled_player === undefined || other_player === undefined)
 		return ;
-	else if (event.data.startsWith(name + ":"))
+	else if (event.data.startsWith(name + ":")) // TODO This should be the player position instead of its movement
 	{
-		if (event.data.endsWith("down"))
-			controlled_player.y += 10;
-		else
-			controlled_player.y -= 10;
+		// if (event.data.endsWith("down"))
+		// 	controlled_player.y += 10;
+		// else
+		// 	controlled_player.y -= 10;
 		if (controlled_player.y < 0)
 			controlled_player.y = 0;
 		if (controlled_player.y > 900)

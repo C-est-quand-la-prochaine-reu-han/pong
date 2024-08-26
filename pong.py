@@ -7,119 +7,139 @@ from websockets.asyncio.server import broadcast
 from websockets.exceptions import ConnectionClosedOK
 
 
-def collides(player, ball_position, index):
-    if index == 1 and ball_position[0] > player.y + 10:
-        return False
-    if index == 2 and ball_position[0] < player.y - 10:
-        return False
-    if ball_position[1] < player.height - 100 or ball_position[1] > player.height + 100:
-        return False
-    return True
+class Point2D:
+    line = 0
+    column = 0
 
 
-class Player:
-    socket = None
-    name = ""
+class Rectangle(Point2D):
     height = 0
-    y = 0
-    score = 0
+    width = 0
 
-    def __init__(self, connection=None, name=""):
-        self.height = 500
+    def collidesWith(self, rectangle):
+        if self.line > rectangle.line and self.line < rectangle.line + rectangle.height:
+            if self.column > rectangle.column and self.column < rectangle.column + rectangle.width:
+                return True
+        if self.line > rectangle.line and self.line < rectangle.line + rectangle.height:
+            if self.column + self.width > rectangle.column and self.column + self.width < rectangle.column + rectangle.width:
+                return True
+        return False
+
+
+class Ball(Rectangle):
+    speed_line = 0
+    speed_column = 0
+
+    def __init__(self):
+        self.init_speed()
+
+    def init_speed(self):
+        self.line = 500
+        self.column = 500
+        self.speed_line = random.randint(-5, 5)
+        self.speed_column = random.choice((1, -1)) * random.randint(5, 10)
+
+    async def move(self):
+        self.line += self.speed_line
+        self.column += self.speed_column
+
+
+class Player(Rectangle):
+    socket = None
+    score = 0
+    name = ""
+
+    def __init__(self, connection=None, name="", size=100):
+        self.line = 450
         self.name = name
         self.socket = connection
+        self.height = size
+        self.width = 10
 
     async def register(self, game):
-        game.watchers.append(self)
-        if (len(game.watchers) == 1):
-            self.y = 100
+        game.players.append(self)
+        if (len(game.players) == 1):
+            self.column = 100
         else:
-            self.y = 900
-        if len(game.watchers) == 2:
+            self.column = 900
+        if len(game.players) == 2:
             asyncio.create_task(game.run())
             game = Game()
         self.game = game
 
 
 class Game:
-    ball_pos = [500,500]
-    ball_movement = [0,0]
-    watchers = []
-    timer = 0
+    ball = Ball()
+    players = []
+    score_max = 0
 
-    def __init__(self):
-        self.ball_movement = [random.randint(-10, 10), random.randint(-2, 2)]
+    def __init__(self, score_max=10):
+        self.score_max = score_max
         print("A new game is waiting for players")
 
     async def broadcast(self, message):
-        for w in self.watchers:
+        for w in self.players:
             await w.socket.send(message)
 
     async def handle_collision(self):
-        if self.ball_pos[1] < 0 or self.ball_pos[1] > 1000:
-            self.ball_movement[1] = -self.ball_movement[1]
-            movement = "mov:" + str(self.ball_movement[0]) + ":" + str(self.ball_movement[1])
-            await self.broadcast(movement)
-        if collides(self.watchers[0], self.ball_pos, 1):
-            self.ball_movement[1] += 3 * (0.01 * (self.ball_movement[1] - self.watchers[1].height) - 0.5)
-            self.ball_movement[0] = abs(self.ball_movement[0]) + 0.01
-            movement = "mov:" + str(self.ball_movement[0]) + ":" + str(self.ball_movement[1])
-            await self.broadcast(movement)
-        if collides(self.watchers[1], self.ball_pos, 2):
-            self.ball_movement[1] += 3 * (0.01 * (self.ball_pos[1] - self.watchers[1].height) - 0.5)
-            self.ball_movement[0] = -abs(self.ball_movement[0]) - 0.01
-            movement = "mov:" + str(self.ball_movement[0]) + ":" + str(self.ball_movement[1])
+        movement = ""
+        if self.ball.line <= 0:
+            self.ball.speed_line = +(abs(self.ball.speed_line) + 0.1)
+            movement = "mov:" + str(self.ball.speed_line) + ":" + str(self.ball.speed_column)
+        if self.ball.line >= 1000:
+            self.ball.speed_line = -(abs(self.ball.speed_line) + 0.1)
+            movement = "mov:" + str(self.ball.speed_line) + ":" + str(self.ball.speed_column)
+        if self.ball.collidesWith(self.players[0]):
+            self.ball.speed_column = -self.ball.speed_column
+            self.ball.column = self.players[0].column + self.players[0].width + 1
+            movement = "mov:" + str(self.ball.speed_line) + ":" + str(self.ball.speed_column)
+        if self.ball.collidesWith(self.players[1]):
+            self.ball.speed_column = -self.ball.speed_column
+            self.ball.column = self.players[1].column - self.players[1].width + 1
+            movement = "mov:" + str(self.ball.speed_line) + ":" + str(self.ball.speed_column)
+        if movement != "":
             await self.broadcast(movement)
 
-    async def handle_score(self):
+    async def check_score(self):
         score_msg = ""
-        if self.ball_pos[0] > 1000:
-            self.ball_pos = [500, 500]
-            self.ball_movement = [random.randint(-10, 10), random.randint(-4, 4)]
-            self.watchers[0].score += 1
-            score_msg = "score:" + self.watchers[0].name + ":" + str(self.watchers[0].score)
-        if self.ball_pos[0] < 0:
-            self.ball_pos = [500, 500]
-            self.ball_movement = [random.randint(-10, 10), random.randint(-4, 4)]
-            self.watchers[1].score += 1
-            score_msg = "score:" + self.watchers[1].name + ":" + str(self.watchers[1].score)
+        if self.ball.column > 1000:
+            self.ball.init_speed()
+            self.players[0].score += 1
+            score_msg = "score:" + self.players[0].name + ":" + str(self.players[0].score)
+        if self.ball.column < 0:
+            self.ball.init_speed()
+            self.players[1].score += 1
+            score_msg = "score:" + self.players[1].name + ":" + str(self.players[1].score)
         if score_msg != "":
             await self.broadcast(score_msg)
-            movement = "mov:" + str(self.ball_movement[0]) + ":" + str(self.ball_movement[1])
+            movement = "mov:" + str(self.ball.speed_line) + ":" + str(self.ball.speed_column)
             await self.broadcast(movement)
 
-    async def handle_game_start(self):
-        timer = int(datetime.datetime.now().timestamp())
+    async def start_game(self):
         await self.broadcast("start")
-        await self.watchers[0].socket.send("youare:1")
-        await self.watchers[0].socket.send("opponent:" + self.watchers[1].name)
-        await self.watchers[1].socket.send("youare:2")
-        await self.watchers[1].socket.send("opponent:" + self.watchers[0].name)
-        movement = "mov:" + str(self.ball_movement[0]) + ":" + str(self.ball_movement[1])
+        await self.players[0].socket.send("youare:1")
+        await self.players[0].socket.send("opponent:" + self.players[1].name)
+        await self.players[1].socket.send("youare:2")
+        await self.players[1].socket.send("opponent:" + self.players[0].name)
+        movement = "mov:" + str(self.ball.speed_line) + ":" + str(self.ball.speed_column)
         await self.broadcast(movement)
 
     async def run(self):
-        await self.handle_game_start()
-        pos = "pos:" + str(self.ball_pos[0]) + ":" + str(self.ball_pos[1])
+        await self.start_game()
+        pos = "pos:" + str(self.ball.line) + ":" + str(self.ball.column)
         await self.broadcast(pos)
         
-        i = 0
         while True:
-            time = int(datetime.datetime.now().timestamp())
-            delay = (time - self.timer)
-            self.timer = time
-            self.ball_pos[0] += self.ball_movement[0] * delay
-            self.ball_pos[1] += self.ball_movement[1] * delay
+            # TODO DDA to check for collision between current ball position and next ball position.
+            # It currently checks the collision on the current position, but if the step is too large (when the ball goes fast).
+            # It goes through the paddel and looks like the ball goes through the paddel instead of bouncing.
+            await self.ball.move()
             await self.handle_collision()
-            await self.handle_score()
+            # END OF TODO
+            await self.check_score()
             await asyncio.sleep(0.1)
-            i += 1
-            if i == 10:
-                print(pos)
-                pos = "pos:" + str(self.ball_pos[0]) + ":" + str(self.ball_pos[1])
-                await self.broadcast(pos)
-                i = 0
-
+            pos = "pos:" + str(self.ball.line) + ":" + str(self.ball.column)
+            await self.broadcast(pos)
 
 
 game = Game()
@@ -133,11 +153,17 @@ async def pong(websocket):
     while True:
         message = await me.socket.recv()
         if message == "up":
-            me.height -= 10
-            await game.broadcast(me.name + ":up")
+            me.line -= 10
+            if me.line < 0:
+                me.line = 0
+            else:
+                await game.broadcast(me.name + ":up") # TODO Send the player position instead of its movement
         if message == "down":
-            me.height += 10
-            await game.broadcast(me.name + ":down")
+            me.line += 10
+            if me.line > 900:
+                me.line = 900
+            else:
+                await game.broadcast(me.name + ":down") # TODO Send the player position instead of its movement
 
 
 async def main():
