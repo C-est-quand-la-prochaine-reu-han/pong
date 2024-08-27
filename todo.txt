@@ -3,13 +3,15 @@ pong :
 - accepter les connexions - OK
 - connecter 2 joueurs sur une seule partie - OK
 
-- autoriser plusieurs parties en parallele
+- autoriser plusieurs parties en parallele :
+	- lancer un process de jeu à la demande ?
+	- toujours avoir une partie en attente et accepter les connexions et permanence ?
 
 - gerer la direction et la vitesse de la balle - OK
 
 - gérer le score - OK
 - gerer les rebonds contre les murs - OK
-- gerer les rebonds contre les paddels - OK mais buggé
+- gerer les rebonds contre les paddels - OK tant que la vitesse du joueur n'est pas trop haute
 
 - enregistrer les scores dans la base de donnée
 - authentifier les joueurs sur le serveur Django principal
@@ -19,17 +21,17 @@ pong :
 - arreter la partie au bout de 10 points d'ecarts
 
 - identifier le joueur
-- afficher le jeu dans le bon sens lorsque le joueur est j2
-
-- afficher le joueur du bon coté
 
 
-Protocole de transmission :
+Protocole de transmission (longueur des tabs : 4 pour que ce soit joli) :
 
 start							=> début de partie
 youare:<index>					=> tu es j1 ou tu es j2
 opponent:<pseudo>				=> nom de l'adversaire
+<pseudo>:up						=> le joueur monte
+<pseudo>:down					=> le joueur descend
 score:<pseudo>:<valeur>			=> changement de score
-pos:<balle_x>:<balle_y>			=> mouvement de la balle
+pos:<balle_x>:<balle_y>			=> position de la balle
+mov:<balle_x>:<balle_y>			=> mouvement de la balle
 winner:<pseudo>					=> announce the winner
 

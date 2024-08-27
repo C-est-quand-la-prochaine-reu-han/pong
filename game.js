@@ -139,22 +139,25 @@ socket.onmessage = function (event) {
 	}
 	if (event.data.startsWith("score:"))
 	{
+		console.log(event.data);
+		console.log(player1.name);
+		console.log(player2.name);
 		data = event.data.split(":");
 		if (data[1] == player1.name)
-		{
-			player1.score++;
-			score1.update();
-		}
+			player1.score = parseInt(data[2]);
 		else if (data[1] == player2.name)
-		{
-			player2.score++;
-			score2.update();
-		}
+			player2.score = parseInt(data[2]);
+		score1.update();
+		score2.update();
 		ball.x = 500;
 		ball.y = 500;
 	}
 	if (event.data.startsWith("opponent:"))
+	{
 		opponent = event.data.split(":", 2)[1];
+		other_player.name = opponent;
+		controlled_player.name = name;
+	}
 	if (event.data.startsWith("mov:"))
 	{
 		newdir = event.data.split(":")

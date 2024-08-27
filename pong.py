@@ -84,17 +84,17 @@ class Game:
     async def handle_collision(self):
         movement = ""
         if self.ball.line <= 0:
-            self.ball.speed_line = +(abs(self.ball.speed_line) + 0.1)
+            self.ball.speed_line = +(abs(self.ball.speed_line) + 0.2)
             movement = "mov:" + str(self.ball.speed_line) + ":" + str(self.ball.speed_column)
         if self.ball.line >= 1000:
-            self.ball.speed_line = -(abs(self.ball.speed_line) + 0.1)
+            self.ball.speed_line = -(abs(self.ball.speed_line) + 0.2)
             movement = "mov:" + str(self.ball.speed_line) + ":" + str(self.ball.speed_column)
         if self.ball.collidesWith(self.players[0]):
-            self.ball.speed_column = -self.ball.speed_column
+            self.ball.speed_column = abs(self.ball.speed_column) + 1
             self.ball.column = self.players[0].column + self.players[0].width + 1
             movement = "mov:" + str(self.ball.speed_line) + ":" + str(self.ball.speed_column)
         if self.ball.collidesWith(self.players[1]):
-            self.ball.speed_column = -self.ball.speed_column
+            self.ball.speed_column = -abs(self.ball.speed_column + 1)
             self.ball.column = self.players[1].column - self.players[1].width + 1
             movement = "mov:" + str(self.ball.speed_line) + ":" + str(self.ball.speed_column)
         if movement != "":
@@ -135,8 +135,8 @@ class Game:
             # It goes through the paddel and looks like the ball goes through the paddel instead of bouncing.
             await self.ball.move()
             await self.handle_collision()
-            # END OF TODO
             await self.check_score()
+            # TODO Sleep until you reached x 0, x 1000, y 100 or y 900
             await asyncio.sleep(0.1)
             pos = "pos:" + str(self.ball.line) + ":" + str(self.ball.column)
             await self.broadcast(pos)
