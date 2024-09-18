@@ -6,7 +6,7 @@ var pong_arena = {
 		this.canvas.height = 1000;
 		this.context = this.canvas.getContext("2d");
 		document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-		this.interval = setInterval(game_loop, 20);
+		this.interval = setInterval(game_loop, 100);
 		window.addEventListener('keydown', function (e) {
 			pong_arena.keys = (pong_arena.keys || []);
 			pong_arena.keys[e.keyCode] = true;
@@ -26,6 +26,7 @@ function paddel(width, height, color, x, y) {
 	this.x = x;
 	this.y = y;
 	this.score = 0;
+	this.name = "";
 	var ctx = pong_arena.context;
 	ctx.fillStyle = color;
 	ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -79,25 +80,19 @@ async function startGame() {
 	ball = new ball();
 }
 
-var time = Date.now();
 function move_ball(ball) {
-	let newtime = Date.now()
-	let delay = 0.01 * (newtime - time);
-	time = newtime;
-	ball.x += ball.dirX * delay;
-	ball.y += ball.dirY * delay;
+	ball.x += ball.dirX * 0.1;
+	ball.y += ball.dirY * 0.1;
 }
 
 function handle_player_movement(player1) {
 	if (pong_arena.keys[87])
 	{
 		socket.send("up");
-		controlled_player.y -= 10;
 	}
 	if (pong_arena.keys[83])
 	{
 		socket.send("down");
-		controlled_player.y += 10;
 	}
 	controlled_player.update();
 }
@@ -157,6 +152,8 @@ socket.onmessage = function (event) {
 		opponent = event.data.split(":", 2)[1];
 		other_player.name = opponent;
 		controlled_player.name = name;
+		console.log("you are " + controlled_player.name);
+		console.log("you face " + other_player.name);
 	}
 	if (event.data.startsWith("mov:"))
 	{
@@ -172,27 +169,17 @@ socket.onmessage = function (event) {
 	}
 	if (controlled_player === undefined || other_player === undefined)
 		return ;
-	else if (event.data.startsWith(name + ":")) // TODO This should be the player position instead of its movement
+	if (event.data.startsWith(controlled_player.name + ":"))
 	{
-		// if (event.data.endsWith("down"))
-		// 	controlled_player.y += 10;
-		// else
-		// 	controlled_player.y -= 10;
-		if (controlled_player.y < 0)
-			controlled_player.y = 0;
-		if (controlled_player.y > 900)
-			controlled_player.y = 900;
+		newpos = event.data.split(":");
+		controlled_player.x = parseInt(newpos[1]);
+		controlled_player.y = parseInt(newpos[2]);
 	}
-	else
+	if (event.data.startsWith(other_player.name + ":"))
 	{
-		if (event.data.endsWith("down"))
-			other_player.y += 10;
-		else if (event.data.endsWith("up"))
-			other_player.y -= 10;
-		if (other_player.y < 0)
-			other_player.y = 0;
-		if (other_player.y > 900)
-			other_player.y = 900;
+		newpos = event.data.split(":");
+		other_player.x = parseInt(newpos[1]);
+		other_player.y = parseInt(newpos[2]);
 	}
 }
 
