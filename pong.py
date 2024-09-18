@@ -1,4 +1,4 @@
-#!/bin/env venv/bin/python3
+#!/bin/env python
 
 import time
 import asyncio
