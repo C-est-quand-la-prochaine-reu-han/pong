@@ -78,10 +78,18 @@ class Game:
                 self.ball.speed_line = -self.ball.speed_line
             if self.ball.line == 1000:
                 self.ball.speed_line = -self.ball.speed_line
-            if self.ball.column == 100:
+            if self.ball.column == 100 and self.ball.line >= self.players[0].line and self.ball.line <= self.players[0].line + self.players[1].height:
                 self.ball.speed_column = -self.ball.speed_column
-            if self.ball.column == 900:
+            elif self.ball.column == 100:
+                self.players[1].score += 1
+                await self.broadcast("score:" + self.players[1].name + ":" + str(self.players[1].score))
+                self.ball.init_speed()
+                continue
+            if self.ball.column == 900 and self.ball.line >= self.players[1].line and self.ball.line <= self.players[1].line + self.players[1].height:
                 self.ball.speed_column = -self.ball.speed_column
-
-            # TODO Invert the direction according to the collision
+            elif self.ball.column == 900:
+                self.players[0].score += 1
+                await self.broadcast("score:" + self.players[0].name + ":" + str(self.players[0].score))
+                self.ball.init_speed()
+                continue
 
