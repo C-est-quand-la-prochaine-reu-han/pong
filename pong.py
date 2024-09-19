@@ -17,13 +17,18 @@ game = Game()
 
 async def pong(websocket:ServerProtocol):
     global game
-    message = await websocket.recv()
+    token = await websocket.recv()
 
-    me = Player(connection=websocket, name=message)
+    # TODO Query user matching token to know who's playing
+    me = Player(connection=websocket, name=token)
     await me.register(game)
+    time = datetime.datetime.now()
     while True:
         message = await me.socket.recv()
-        print(me.name + " : " + message)
+        delta = datetime.datetime.now() - time
+        if delta.microseconds < 100000:
+            continue
+        time = datetime.datetime.now()
         if message == "up" or message == "up\n":
             me.line -= 10
             if me.line < 0:

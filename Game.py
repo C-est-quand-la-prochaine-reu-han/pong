@@ -54,6 +54,26 @@ class Game:
 
         return time
 
+    async def handle_collision(self):
+        if self.ball.line == 0 or self.ball.line == 1000:
+            self.ball.speed_line = -self.ball.speed_line
+        if self.ball.column == 100 and self.ball.line >= self.players[0].line and self.ball.line <= self.players[0].line + self.players[1].height:
+            self.ball.speed_column = -self.ball.speed_column + 5
+            # self.ball.speed_line = int(self.ball.speed_line * (1 + ((self.ball.line - self.players[0].line) / self.players[0].height) - 0.5))
+        elif self.ball.column == 100:
+            self.players[1].score += 1
+            await self.broadcast("score:" + self.players[1].name + ":" + str(self.players[1].score))
+            self.ball.init_speed()
+            return
+        if self.ball.column == 900 and self.ball.line >= self.players[1].line and self.ball.line <= self.players[1].line + self.players[1].height:
+            self.ball.speed_column = -self.ball.speed_column - 5
+            # self.ball.speed_line = int(self.ball.speed_line * (1 + ((self.ball.line - self.players[1].line) / self.players[1].height) - 0.5))
+        elif self.ball.column == 900:
+            self.players[0].score += 1
+            await self.broadcast("score:" + self.players[0].name + ":" + str(self.players[0].score))
+            self.ball.init_speed()
+            return
+
     async def run(self):
         await self.start_game()
         pos = "pos:" + str(self.ball.line) + ":" + str(self.ball.column)
@@ -62,7 +82,7 @@ class Game:
         while True:
             # Broadcast the next movement and position
             mov = "mov:" + str(self.ball.speed_line) + ":" + str(self.ball.speed_column)
-            pos = "pos:" + str(int(self.ball.line)) + ":" + str(int(self.ball.column))
+            pos = "pos:" + str(self.ball.line) + ":" + str(self.ball.column)
             await self.broadcast(pos)
             await self.broadcast(mov)
 
@@ -71,25 +91,8 @@ class Game:
             await asyncio.sleep(delay_until_collision)
 
             # Compute the new position and check for collision
-            self.ball.line, self.ball.column = (self.ball.line + self.ball.speed_line * delay_until_collision, self.ball.column + self.ball.speed_column * delay_until_collision)
+            self.ball.line = int(self.ball.line + self.ball.speed_line * delay_until_collision)
+            self.ball.column = int(self.ball.column + self.ball.speed_column * delay_until_collision)
 
-            # TODO Check for a collision
-            if self.ball.line == 0:
-                self.ball.speed_line = -self.ball.speed_line
-            if self.ball.line == 1000:
-                self.ball.speed_line = -self.ball.speed_line
-            if self.ball.column == 100 and self.ball.line >= self.players[0].line and self.ball.line <= self.players[0].line + self.players[1].height:
-                self.ball.speed_column = -self.ball.speed_column
-            elif self.ball.column == 100:
-                self.players[1].score += 1
-                await self.broadcast("score:" + self.players[1].name + ":" + str(self.players[1].score))
-                self.ball.init_speed()
-                continue
-            if self.ball.column == 900 and self.ball.line >= self.players[1].line and self.ball.line <= self.players[1].line + self.players[1].height:
-                self.ball.speed_column = -self.ball.speed_column
-            elif self.ball.column == 900:
-                self.players[0].score += 1
-                await self.broadcast("score:" + self.players[0].name + ":" + str(self.players[0].score))
-                self.ball.init_speed()
-                continue
+            await self.handle_collision()
 

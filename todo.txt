@@ -1,21 +1,13 @@
 pong :
 
-- autoriser plusieurs parties en parallele :
-	- toujours avoir une partie en attente et accepter les connexions et permanence - OK pour la premiere, KO apres
-
-- gerer les rebonds contre les paddels - OK
-
-- enregistrer les scores dans la base de donnée
-- authentifier les joueurs sur le serveur Django principal -> récupérer les token d'authentification ?
-
-- chronometrer le temps de jeu
-- arreter la partie au bout de 10min
-- arreter la partie au bout de 10 points d'ecarts
-
-- identifier le joueur -> il donne son nom
-
-- Optimisation patate sur le serveur :
-	- calculer cb de temps avant prochaine collision potentielle - OK
-	- endormir la game loop jusqu'a prochaine collision potentielle - OK
-	- économiser des milliards de cycles de processeur inutiles - OK
+- Logique de jeu - OK
+- Récupérer les infos du joueur dont on reçoit le token sur l'API
+- Mettre un timer de qq secondes avant début de match et entre chaque point
+- Chronometrer le temps des matchs
+- Compter les différentes actions du match
+- Arréter le match en cas de victoire ou déconnexion
+    - arreter la partie au bout de 10min
+    - arreter la partie au bout de 10 points d'ecarts
+- Enregistrer les scores et stats en fin de match
+- Pouvoir jouer plusieurs match en parallele
 

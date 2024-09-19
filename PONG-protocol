@@ -20,5 +20,6 @@ mov:<balle_x>:<balle_y>			=> mouvement de la balle
 winner:<pseudo>					=> announce the winner
 
 # À envoyer au serveur
+<name/token>                    => premier message que le serveur reçoit d'un client, pour le moment le nom d'un joueur (à terme, ce sera le jeton pour acceder à l'API)
 up								=> fait monter le joueur
 down							=> fait descendre le joueur

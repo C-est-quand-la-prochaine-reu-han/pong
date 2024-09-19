@@ -6,7 +6,7 @@ var pong_arena = {
 		this.canvas.height = 1000;
 		this.context = this.canvas.getContext("2d");
 		document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-		this.interval = setInterval(game_loop, 100);
+		this.interval = setInterval(game_loop, 50);
 		window.addEventListener('keydown', function (e) {
 			pong_arena.keys = (pong_arena.keys || []);
 			pong_arena.keys[e.keyCode] = true;
@@ -81,20 +81,15 @@ async function startGame() {
 }
 
 function move_ball(ball) {
-	ball.x += ball.dirX * 0.1;
-	ball.y += ball.dirY * 0.1;
+	ball.x += ball.dirX * 0.05;
+	ball.y += ball.dirY * 0.05;
 }
 
 function handle_player_movement(player1) {
 	if (pong_arena.keys[87])
-	{
 		socket.send("up");
-	}
 	if (pong_arena.keys[83])
-	{
 		socket.send("down");
-	}
-	controlled_player.update();
 }
 
 function game_loop() {
@@ -108,7 +103,7 @@ function game_loop() {
 	ball.update();
 }
 
-var socket = new WebSocket("ws://localhost:8765");
+var socket = new WebSocket("ws://localhost:8765"); // TODO Change this to the real HOST
 
 let name = window.prompt("Pls type your name", "");
 let opponent = "";
