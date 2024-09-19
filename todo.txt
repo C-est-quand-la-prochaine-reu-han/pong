@@ -1,40 +1,21 @@
 pong :
 
 - autoriser plusieurs parties en parallele :
-	- lancer un process de jeu à la demande ?
-	- toujours avoir une partie en attente et accepter les connexions et permanence ?
+	- toujours avoir une partie en attente et accepter les connexions et permanence - OK pour la premiere, KO apres
 
-- gerer les rebonds contre les paddels - OK tant que la vitesse du joueur n'est pas trop haute
+- gerer les rebonds contre les paddels - OK
 
 - enregistrer les scores dans la base de donnée
-- authentifier les joueurs sur le serveur Django principal
+- authentifier les joueurs sur le serveur Django principal -> récupérer les token d'authentification ?
 
 - chronometrer le temps de jeu
 - arreter la partie au bout de 10min
 - arreter la partie au bout de 10 points d'ecarts
 
-- identifier le joueur
+- identifier le joueur -> il donne son nom
 
-- fix le bug de déplacement qui permet au joueur d'aller sous la map depuis que les mouvements sont gérés client-side
-
-- DDA sur le déplacement de la balle pour voir s'il y a une collision avec un paddel
 - Optimisation patate sur le serveur :
-	- calculer cb de temps avant prochaine collision potentielle
-	- endormir la game loop jusqu'a prochaine collision potentielle
-	- économiser des milliards de cycles de processeur inutiles
+	- calculer cb de temps avant prochaine collision potentielle - OK
+	- endormir la game loop jusqu'a prochaine collision potentielle - OK
+	- économiser des milliards de cycles de processeur inutiles - OK
 
-
-Protocole de transmission (longueur des tabs : 4 pour que ce soit joli) :
-
-start							=> début de partie
-youare:<index>					=> tu es j1 ou tu es j2
-opponent:<pseudo>				=> nom de l'adversaire
-<pseudo>:up						=> le joueur monte
-<pseudo>:down					=> le joueur descend
-score:<pseudo>:<valeur>			=> changement de score
-pos:<balle_x>:<balle_y>			=> position de la balle
-mov:<balle_x>:<balle_y>			=> mouvement de la balle
-winner:<pseudo>					=> announce the winner
-
-up								=> fait monter le joueur
-down							=> fait descendre le joueur

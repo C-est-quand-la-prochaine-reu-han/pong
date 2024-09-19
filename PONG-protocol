@@ -1,0 +1,24 @@
+Protocole de transmission (longueur des tabs : 4 pour que ce soit joli) :
+
+# Envoyé au début pour initialiser la partie
+youare:<index>					=> tu es j1 ou tu es j2
+opponent:<pseudo>				=> nom de l'adversaire
+start							=> début de partie
+
+# Envoyé quand qq bouge
+<pseudo>:x:y					=> le joueur est maintenant sur cette position
+
+
+# Envoyé en cas de point marqué
+score:<pseudo>:<valeur>			=> changement de score
+
+# Envoyé à chaque collision et en cas de point marqué
+pos:<balle_x>:<balle_y>			=> position de la balle
+mov:<balle_x>:<balle_y>			=> mouvement de la balle
+
+# Envoyé en fin de partie
+winner:<pseudo>					=> announce the winner
+
+# À envoyer au serveur
+up								=> fait monter le joueur
+down							=> fait descendre le joueur
