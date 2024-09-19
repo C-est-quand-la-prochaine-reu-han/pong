@@ -1,13 +1,26 @@
 pong :
 
 - Logique de jeu - OK
+
 - Récupérer les infos du joueur dont on reçoit le token sur l'API
+
 - Mettre un timer de qq secondes avant début de match et entre chaque point
+
 - Chronometrer le temps des matchs
+
 - Compter les différentes actions du match
+
 - Arréter le match en cas de victoire ou déconnexion
     - arreter la partie au bout de 10min
     - arreter la partie au bout de 10 points d'ecarts
+
 - Enregistrer les scores et stats en fin de match
+
 - Pouvoir jouer plusieurs match en parallele
 
+- Option de customisation de partie :
+ - score max
+ - temps max
+ - vitesse min/max de la balle
+ - avec ou sans effet
+ - niveau de l'IA

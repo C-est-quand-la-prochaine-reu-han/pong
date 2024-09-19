@@ -27,6 +27,5 @@ class Player(Rectangle):
             self.column = 900
         if len(game.players) == 2:
             asyncio.create_task(game.run())
-            game = Game()
         self.game = game
 
