@@ -1,24 +1,22 @@
 import asyncio
-from dataclasses import dataclass
 
 from Ball import Ball
 from utils import Rectangle
 
 class Game:
-    ball:Ball = Ball()
-    players = []
-    score_max:int = 0
 
     def __init__(self, score_max:int=10):
         self.score_max = score_max
-        print("A new game is waiting for players")
+        self.players = []
+        self.ball = Ball()
+        self.score_max = 0
 
     async def start_game(self):
         await self.broadcast("start")
-        await self.players[0].socket.send("youare:1")
         await self.players[0].socket.send("opponent:" + self.players[1].name)
-        await self.players[1].socket.send("youare:2")
+        await self.players[0].socket.send("youare:1")
         await self.players[1].socket.send("opponent:" + self.players[0].name)
+        await self.players[1].socket.send("youare:2")
         movement = "mov:" + str(self.ball.speed_line) + ":" + str(self.ball.speed_column)
         await self.broadcast(movement)
 
@@ -88,11 +86,13 @@ class Game:
 
             # Wait for the next collision
             delay_until_collision = self.get_time_before_collision()
+            print("let's sleep for %s" % delay_until_collision)
             await asyncio.sleep(delay_until_collision)
 
             # Compute the new position and check for collision
             self.ball.line = int(self.ball.line + self.ball.speed_line * delay_until_collision)
             self.ball.column = int(self.ball.column + self.ball.speed_column * delay_until_collision)
+            print("Line: %s; Column: %s" % (self.ball.line, self.ball.column))
 
             await self.handle_collision()
 

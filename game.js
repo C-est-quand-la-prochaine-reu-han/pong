@@ -121,11 +121,15 @@ socket.onmessage = function (event) {
 	{
 		controlled_player = player1;
 		other_player = player2;
+		other_player.name = name;
+		controlled_player.name = temp_name;
 	}
 	if (event.data === "youare:2")
 	{
 		controlled_player = player2;
 		other_player = player1;
+		controlled_player.name = name;
+		other_player.name = temp_name;
 	}
 	if (event.data.startsWith("score:"))
 	{
@@ -145,10 +149,7 @@ socket.onmessage = function (event) {
 	if (event.data.startsWith("opponent:"))
 	{
 		opponent = event.data.split(":", 2)[1];
-		other_player.name = opponent;
-		controlled_player.name = name;
-		console.log("you are " + controlled_player.name);
-		console.log("you face " + other_player.name);
+		temp_name = opponent;
 	}
 	if (event.data.startsWith("mov:"))
 	{

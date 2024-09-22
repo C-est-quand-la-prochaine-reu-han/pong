@@ -13,15 +13,38 @@ from Game import Game
 from Player import Player
 
 
-game = Game()
+games = [Game(),]
+
+def get_game():
+    global games
+    game = None
+
+    print(games)
+    for g in games:
+        for p in g.players:
+            print(p.name)
+        print("")
+        if len(g.players) != 2:
+            game = g
+
+    # Or create one if nobody's already registered
+    if game is None:
+        print("Creating a game...")
+        game = Game()
+        game.players = []
+        games.append(game)
+
+    return game
 
 async def pong(websocket:ServerProtocol):
-    global game
     token = await websocket.recv()
 
     # TODO Query user matching token to know who's playing
     me = Player(connection=websocket, name=token)
+
+    game = get_game()
     await me.register(game)
+
     time = datetime.datetime.now()
     while True:
         message = await me.socket.recv()
