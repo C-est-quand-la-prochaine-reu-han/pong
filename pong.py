@@ -57,13 +57,13 @@ async def pong(websocket:ServerProtocol):
             if me.line < 0:
                 me.line = 0
             else:
-                await game.broadcast(me.name + ":" + str(me.column) + ":" + str(me.line))
+                await game.broadcast(me.name + ":" + str(me.line) + ":" + str(me.column))
         if message == "down" or message == "down\n":
             me.line += 10
             if me.line > 900:
                 me.line = 900
             else:
-                await game.broadcast(me.name + ":" + str(me.column) + ":" + str(me.line))
+                await game.broadcast(me.name + ":" + str(me.line) + ":" + str(me.column))
 
 
 async def main():

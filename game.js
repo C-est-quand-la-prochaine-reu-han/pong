@@ -168,14 +168,14 @@ socket.onmessage = function (event) {
 	if (event.data.startsWith(controlled_player.name + ":"))
 	{
 		newpos = event.data.split(":");
-		controlled_player.x = parseInt(newpos[1]);
-		controlled_player.y = parseInt(newpos[2]);
+		controlled_player.y = parseInt(newpos[1]);
+		controlled_player.x = parseInt(newpos[2]);
 	}
 	if (event.data.startsWith(other_player.name + ":"))
 	{
 		newpos = event.data.split(":");
-		other_player.x = parseInt(newpos[1]);
-		other_player.y = parseInt(newpos[2]);
+		other_player.y = parseInt(newpos[1]);
+		other_player.x = parseInt(newpos[2]);
 	}
 }
 

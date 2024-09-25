@@ -6,15 +6,15 @@ opponent:<pseudo>				=> nom de l'adversaire
 start							=> début de partie
 
 # Envoyé quand qq bouge
-<pseudo>:x:y					=> le joueur est maintenant sur cette position
+<pseudo>:y:x					=> le joueur est maintenant sur cette position
 
 
 # Envoyé en cas de point marqué
 score:<pseudo>:<valeur>			=> changement de score
 
 # Envoyé à chaque collision et en cas de point marqué
-pos:<balle_x>:<balle_y>			=> position de la balle
-mov:<balle_x>:<balle_y>			=> mouvement de la balle
+pos:<balle_y>:<balle_x>			=> position de la balle
+mov:<balle_y>:<balle_x>			=> mouvement de la balle
 
 # Envoyé en fin de partie
 winner:<pseudo>					=> announce the winner
