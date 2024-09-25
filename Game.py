@@ -4,7 +4,6 @@ from Ball import Ball
 from utils import Rectangle
 
 class Game:
-
     def __init__(self, score_max:int=10):
         self.score_max = score_max
         self.players = []
@@ -31,26 +30,31 @@ class Game:
             temp_time = abs(to_be_travelled / self.ball.speed_column)
             if temp_time < time:
                 time = temp_time
-
         if self.ball.speed_column > 0:
             to_be_travelled = 900 - self.ball.column - self.ball.width
             temp_time = abs(to_be_travelled / self.ball.speed_column)
             if temp_time < time:
                 time = temp_time
-
         if self.ball.speed_line < 0:
             to_be_travelled = self.ball.line
             temp_time = abs(to_be_travelled / self.ball.speed_line)
             if temp_time < time:
                 time = temp_time
-
         if self.ball.speed_line > 0:
             to_be_travelled = 1000 - self.ball.line - self.ball.height
             temp_time = abs(to_be_travelled / self.ball.speed_line)
             if temp_time < time:
                 time = temp_time
-
         return time
+
+    async def handle_victory(self):
+        if self.players[0].score == 10:
+            await self.broadcast("winner:" + self.players[0].name)
+            return True
+        if self.players[1].score == 10:
+            await self.broadcast("winner:" + self.players[1].name)
+            return True
+        return False
 
     async def handle_collision(self):
         if self.ball.line == 0 or self.ball.line == 1000:
@@ -71,6 +75,9 @@ class Game:
             await self.broadcast("score:" + self.players[0].name + ":" + str(self.players[0].score))
             self.ball.init_speed()
             return
+
+    def save_match(self):
+        pass
 
     async def run(self):
         await self.start_game()
@@ -95,4 +102,6 @@ class Game:
             print("Line: %s; Column: %s" % (self.ball.line, self.ball.column))
 
             await self.handle_collision()
-
+            if await self.handle_victory():
+                break
+        self.save_match()

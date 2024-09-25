@@ -47,7 +47,10 @@ async def pong(websocket:ServerProtocol):
 
     time = datetime.datetime.now()
     while True:
-        message = await me.socket.recv()
+        try:
+            message = await me.socket.recv()
+        except:
+            break
         delta = datetime.datetime.now() - time
         if delta.microseconds < 100000:
             continue
