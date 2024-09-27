@@ -1,5 +1,7 @@
 #!/bin/env python
 
+import os
+import sys
 import time
 import asyncio
 import datetime
@@ -70,7 +72,10 @@ async def pong(websocket:ServerProtocol):
 
 
 async def main():
-    async with serve(pong, "0.0.0.0", 8765) as websocket:
+    if os.environ["PORT"] is None:
+        print("PORT environment variable must be defined.", file=sys.stderr)
+        return
+    async with serve(pong, "0.0.0.0", os.environ.get("PORT")) as websocket:
         await asyncio.get_running_loop().create_future()
 
 asyncio.run(main())
