@@ -57,20 +57,20 @@ class Game:
         return False
 
     async def handle_collision(self):
-        if self.ball.line == 0 or self.ball.line == 1000:
+        if self.ball.line <= 0 or self.ball.line >= 1000:
             self.ball.speed_line = -self.ball.speed_line
-        if self.ball.column == 100 and self.ball.line >= self.players[0].line and self.ball.line <= self.players[0].line + self.players[1].height:
+        if self.ball.column <= 100 and self.ball.line >= self.players[0].line and self.ball.line <= self.players[0].line + self.players[1].height:
             self.ball.speed_column = -self.ball.speed_column + 5
             # self.ball.speed_line = int(self.ball.speed_line * (1 + ((self.ball.line - self.players[0].line) / self.players[0].height) - 0.5))
-        elif self.ball.column == 100:
+        elif self.ball.column <= 100:
             self.players[1].score += 1
             await self.broadcast("score:" + self.players[1].name + ":" + str(self.players[1].score))
             self.ball.init_speed()
             return
-        if self.ball.column == 900 and self.ball.line >= self.players[1].line and self.ball.line <= self.players[1].line + self.players[1].height:
+        if self.ball.column >= 900 and self.ball.line >= self.players[1].line and self.ball.line <= self.players[1].line + self.players[1].height:
             self.ball.speed_column = -self.ball.speed_column - 5
             # self.ball.speed_line = int(self.ball.speed_line * (1 + ((self.ball.line - self.players[1].line) / self.players[1].height) - 0.5))
-        elif self.ball.column == 900:
+        elif self.ball.column >= 900:
             self.players[0].score += 1
             await self.broadcast("score:" + self.players[0].name + ":" + str(self.players[0].score))
             self.ball.init_speed()

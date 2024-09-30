@@ -15,7 +15,7 @@ class Ball(Rectangle):
         self.line = 500
         self.column = 500
         self.speed_line = 10 * random.randint(-5, 5)
-        self.speed_column = 10 * random.choice((1, -1)) * random.randint(8, 12)
+        self.speed_column = 10 * random.choice((1, -1)) * random.randint(20, 25)
 
     async def move(self):
         self.line += self.speed_line
