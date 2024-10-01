@@ -54,7 +54,7 @@ async def pong(websocket:ServerProtocol):
         except:
             break
         delta = datetime.datetime.now() - time
-        if delta.microseconds < 100000:
+        if delta.microseconds < 50000:
             continue
         time = datetime.datetime.now()
         if message == "up" or message == "up\n":
