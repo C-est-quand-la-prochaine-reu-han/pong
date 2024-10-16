@@ -17,34 +17,39 @@ from Player import Player
 
 games = [Game(),]
 
-def get_game():
+def get_game(opponent, name):
     global games
     game = None
 
-    print(games)
     for g in games:
-        for p in g.players:
-            print(p.name)
-        print("")
-        if len(g.players) != 2:
-            game = g
+        if len(g.players) == 2:
+            continue
+        if opponent != "*":
+            for p in g.players:
+                if p.name == opponent:
+                    game = g
+        else:
+            if g.opponent == "*" or g.opponent == name:
+                game = g
 
     # Or create one if nobody's already registered
     if game is None:
         print("Creating a game...")
         game = Game()
         game.players = []
+        game.opponent = opponent
         games.append(game)
 
     return game
 
 async def pong(websocket:ServerProtocol):
+    opponent = await websocket.recv()
     token = await websocket.recv()
 
     # TODO Query user matching token to know who's playing
     me = Player(connection=websocket, name=token)
 
-    game = get_game()
+    game = get_game(opponent, me.name)
     await me.register(game)
 
     time = datetime.datetime.now()

@@ -6,6 +6,7 @@ from utils import Rectangle
 class Game:
     def __init__(self, score_max:int=10):
         self.score_max = score_max
+        self.opponent = "*"
         self.players = []
         self.ball = Ball()
         self.score_max = 0
