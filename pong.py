@@ -55,6 +55,7 @@ async def pong(websocket:ServerProtocol):
         }
     )
     if (player.status_code != 200):
+        await websocket.send("opponent:personne")
         await websocket.send("who are you ? get out")
         return
     player = player.json()
