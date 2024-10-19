@@ -5,9 +5,11 @@ from utils import Rectangle
 
 from websockets.exceptions import WebSocketException
 
+import os
+import sys
+import json
 import datetime
 import requests
-import os
 
 class Game:
     def __init__(self, score_max:int=10):
@@ -85,43 +87,18 @@ class Game:
             return
 
     def save_match(self):
-        me_url = "http://ft-transcendence-api-1:" + str(os.environ.get("API_PORT")) + "/appong/api/user/me/"
-
-        player1 = requests.get(
-            me_url,
-            headers={
-                'Content-Type': 'application/json',
-                'Authorization': 'Token ' + self.players[0].name
-            }
-        )
-        if player1.status_code != 200:
-            return
-
-        player2 = requests.get(
-            me_url,
-            headers={
-                'Content-Type': 'application/json',
-                'Authorization': 'Token ' + self.players[1].name
-            }
-        )
-
-        if player2.status_code != 200:
-            return
-
-        player1 = player1.json()
-        player2 = player2.json()
-
         r = requests.post(
                 "http://ft-transcendence-api-1:" + str(os.environ.get("API_PORT")) + "/appong/api/match/",
             headers={
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'Authorization': 'Token ThisIsASuperStrongAndSolidToken:3'
             },
-            body={ # TODO Handle tournaments
-                "player1": player1.id,
-                "player2": player2.id,
-                "match_start_time": self.start_time,
-                "match_end_time": datetime.datetime.now(),
+            data=json.dumps({
+                "player1": self.players[0].id,
+                "player2": self.players[1].id,
+                # "match_start_time": self.start_time,
+                # "match_end_time": datetime.datetime.now(),
                 "player1_hit_nb": 0,
                 "player2_hit_nb": 0,
                 "player1_perfect_hit_nb": 0,
@@ -130,10 +107,11 @@ class Game:
                 "player2_score": self.players[1].score,
                 "ball_max_speed": 0,
                 "match_status": 1
-            }
+            })
         )
-        print("========== REQUEST ==========")
-        print(r)
+        print("========== REQUEST ==========", file=sys.stderr)
+        print(r, file=sys.stderr)
+        print(r.text, file=sys.stderr)
 
 
     async def run(self):
