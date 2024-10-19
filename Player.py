@@ -8,16 +8,15 @@ from utils import Rectangle
 
 @dataclass
 class Player(Rectangle):
-    socket:ServerProtocol = None
-    score:int = 0
-    name:str = ""
-
-    def __init__(self, connection=None, name:str="", size:int=100):
+    def __init__(self, connection=None, name:str="", token="", id=-1, size:int=100):
         self.line = 450
+        self.score = 0
         self.name = name
         self.socket = connection
         self.height = size
         self.width = 10
+        self.token = token
+        self.id = id
 
     async def register(self, game:Game):
         game.players.append(self)

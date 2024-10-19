@@ -5,6 +5,7 @@ import sys
 import time
 import asyncio
 import datetime
+import requests
 from websockets.asyncio.server import serve
 from websockets.asyncio.server import broadcast
 from websockets.exceptions import ConnectionClosedOK
@@ -46,8 +47,18 @@ async def pong(websocket:ServerProtocol):
     opponent = await websocket.recv()
     token = await websocket.recv()
 
-    # TODO Query user matching token to know who's playing
-    me = Player(connection=websocket, name=token)
+    player = requests.get(
+        "http://ft-transcendence-api-1.transcendence:" + str(os.environ.get("API_PORT")) + "/appong/api/user/me/",
+        headers={
+            'Authorization': 'Token ' + token,
+            'Accept': 'application/json'
+        }
+    )
+    if (player.status_code != 200):
+        await websocket.send("who are you ? get out")
+        return
+    player = player.json()
+    me = Player(connection=websocket, name=player['user_nick'], token=token, id=player['pk'])
 
     game = get_game(opponent, me.name)
     await me.register(game)

@@ -3,6 +3,9 @@ import asyncio
 from Ball import Ball
 from utils import Rectangle
 
+from websockets.exceptions import WebSocketException
+
+import datetime
 import requests
 import os
 
@@ -13,6 +16,7 @@ class Game:
         self.players = []
         self.ball = Ball()
         self.score_max = 0
+        self.start_time = None
 
     async def start_game(self):
         await self.broadcast("start")
@@ -81,14 +85,51 @@ class Game:
             return
 
     def save_match(self):
+        me_url = "http://ft-transcendence-api-1:" + str(os.environ.get("API_PORT")) + "/appong/api/user/me/"
+
+        player1 = requests.get(
+            me_url,
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': 'Token ' + self.players[0].name
+            }
+        )
+        if player1.status_code != 200:
+            return
+
+        player2 = requests.get(
+            me_url,
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': 'Token ' + self.players[1].name
+            }
+        )
+
+        if player2.status_code != 200:
+            return
+
+        player1 = player1.json()
+        player2 = player2.json()
+
         r = requests.post(
-                "http://ft_transcendence-api-1:" + str(os.environ.get("API_PORT")) + "/appong/api/match/",
+                "http://ft-transcendence-api-1:" + str(os.environ.get("API_PORT")) + "/appong/api/match/",
             headers={
                 'Content-Type': 'application/json',
                 'Authorization': 'Token ThisIsASuperStrongAndSolidToken:3'
             },
-            body={
-                # TODO get match informations
+            body={ # TODO Handle tournaments
+                "player1": player1.id,
+                "player2": player2.id,
+                "match_start_time": self.start_time,
+                "match_end_time": datetime.datetime.now(),
+                "player1_hit_nb": 0,
+                "player2_hit_nb": 0,
+                "player1_perfect_hit_nb": 0,
+                "player2_perfect_hit_nb": 0,
+                "player1_score": self.players[0].score,
+                "player2_score": self.players[1].score,
+                "ball_max_speed": 0,
+                "match_status": 1
             }
         )
         print("========== REQUEST ==========")
@@ -96,6 +137,7 @@ class Game:
 
 
     async def run(self):
+        self.start_time = datetime.datetime.now()
         try:
             await self.start_game()
             pos = "pos:" + str(self.ball.line) + ":" + str(self.ball.column)
@@ -122,7 +164,7 @@ class Game:
                 if await self.handle_victory():
                     self.save_match()
                     break
-        except:
+        except WebSocketException:
             for w in self.players:
                 try:
                     await w.socket.send("winner:aborted")
