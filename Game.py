@@ -3,6 +3,9 @@ import asyncio
 from Ball import Ball
 from utils import Rectangle
 
+import requests
+import os
+
 class Game:
     def __init__(self, score_max:int=10):
         self.score_max = score_max
@@ -78,31 +81,52 @@ class Game:
             return
 
     def save_match(self):
-        pass
+        r = requests.post(
+                "http://ft_transcendence-api-1:" + str(os.environ.get("API_PORT")) + "/appong/api/match/",
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': 'Token ThisIsASuperStrongAndSolidToken:3'
+            },
+            body={
+                # TODO get match informations
+            }
+        )
+        print("========== REQUEST ==========")
+        print(r)
+
 
     async def run(self):
-        await self.start_game()
-        pos = "pos:" + str(self.ball.line) + ":" + str(self.ball.column)
-        await self.broadcast(pos)
-        
-        while True:
-            # Broadcast the next movement and position
-            mov = "mov:" + str(self.ball.speed_line) + ":" + str(self.ball.speed_column)
+        try:
+            await self.start_game()
             pos = "pos:" + str(self.ball.line) + ":" + str(self.ball.column)
             await self.broadcast(pos)
-            await self.broadcast(mov)
+        
+            while True:
+                # Broadcast the next movement and position
+                mov = "mov:" + str(self.ball.speed_line) + ":" + str(self.ball.speed_column)
+                pos = "pos:" + str(self.ball.line) + ":" + str(self.ball.column)
+                await self.broadcast(pos)
+                await self.broadcast(mov)
 
-            # Wait for the next collision
-            delay_until_collision = self.get_time_before_collision()
-            print("let's sleep for %s" % delay_until_collision)
-            await asyncio.sleep(delay_until_collision)
+                # Wait for the next collision
+                delay_until_collision = self.get_time_before_collision()
+                print("let's sleep for %s" % delay_until_collision)
+                await asyncio.sleep(delay_until_collision)
 
-            # Compute the new position and check for collision
-            self.ball.line = int(self.ball.line + self.ball.speed_line * delay_until_collision)
-            self.ball.column = int(self.ball.column + self.ball.speed_column * delay_until_collision)
-            print("Line: %s; Column: %s" % (self.ball.line, self.ball.column))
+                # Compute the new position and check for collision
+                self.ball.line = int(self.ball.line + self.ball.speed_line * delay_until_collision)
+                self.ball.column = int(self.ball.column + self.ball.speed_column * delay_until_collision)
+                print("Line: %s; Column: %s" % (self.ball.line, self.ball.column))
 
-            await self.handle_collision()
-            if await self.handle_victory():
-                break
-        self.save_match()
+                await self.handle_collision()
+                if await self.handle_victory():
+                    self.save_match()
+                    break
+        except:
+            for w in self.players:
+                try:
+                    await w.socket.send("winner:aborted")
+                except:
+                    pass
+            return
+
