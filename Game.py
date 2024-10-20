@@ -23,7 +23,7 @@ class Game:
         self.score_max = 0
         self.start_time = None
         self.ball_max_speed = 0
-        self.tournament_id = None
+        self.tournament_id = -1
 
     async def start_game(self):
         # await self.broadcast("time")
@@ -112,14 +112,14 @@ class Game:
             "match_status": 1
         }
         print(self.tournament_id, file=sys.stderr)
-        if self.tournament_id is not None:
+        if self.tournament_id != -1 and self.tournament_id != 0:
             match_data["tournament"] = self.tournament_id
         r = requests.post(
                 "http://ft-transcendence-api-1:" + str(os.environ.get("API_PORT")) + "/appong/api/match/",
             headers={
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'Authorization': 'Token ThisIsASuperStrongAndSolidToken:3'
+                'Authorization': 'Token ' + str(os.environ.get("BOT_TOKEN"))
             },
 
             data=json.dumps(match_data, default=str)

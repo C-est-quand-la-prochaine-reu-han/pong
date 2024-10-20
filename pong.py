@@ -22,17 +22,18 @@ def get_game(opponent, name, tournament_id):
     global games
     game = None
 
-    # Join a game if one is available
-    for g in games:
-        if len(g.players) != 1:
-            continue
-        if opponent != "*":
-            for p in g.players:
-                if p.name == opponent:
+    if name is not 'bot':
+        # Join a game if one is available
+        for g in games:
+            if len(g.players) != 1:
+                continue
+            if opponent != "*":
+                for p in g.players:
+                    if p.name == opponent:
+                        game = g
+            else:
+                if (g.opponent == "*" or g.opponent == name) and g.players[0].name != "bot":
                     game = g
-        else:
-            if (g.opponent == "*" or g.opponent == name) and g.players[0].name != "bot":
-                game = g
 
     # Or create one if nobody's already registered
     if game is None:
