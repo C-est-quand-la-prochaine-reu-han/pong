@@ -23,6 +23,7 @@ class Game:
         self.score_max = 0
         self.start_time = None
         self.ball_max_speed = 0
+        self.tournament_id = None
 
     async def start_game(self):
         # await self.broadcast("time")
@@ -96,6 +97,23 @@ class Game:
 
     def save_match(self):
         tzone = tz.gettz('Europe/Paris')
+        match_data = {
+            "player1": self.players[0].id,
+            "player2": self.players[1].id,
+            "match_start_time": self.start_time,
+            "match_end_time": datetime.datetime.now(tz=tzone),
+            "player1_hit_nb": self.players[0].ball_hit,
+            "player2_hit_nb": self.players[1].ball_hit,
+            "player1_perfect_hit_nb": 0,
+            "player2_perfect_hit_nb": 0,
+            "player1_score": self.players[0].score,
+            "player2_score": self.players[1].score,
+            "ball_max_speed": int(self.ball_max_speed),
+            "match_status": 1
+        }
+        print(self.tournament_id, file=sys.stderr)
+        if self.tournament_id is not None:
+            match_data["tournament"] = self.tournament_id
         r = requests.post(
                 "http://ft-transcendence-api-1:" + str(os.environ.get("API_PORT")) + "/appong/api/match/",
             headers={
@@ -103,24 +121,12 @@ class Game:
                 'Accept': 'application/json',
                 'Authorization': 'Token ThisIsASuperStrongAndSolidToken:3'
             },
-            data=json.dumps({
-                "player1": self.players[0].id,
-                "player2": self.players[1].id,
-                "match_start_time": self.start_time,
-                "match_end_time": datetime.datetime.now(tz=tzone),
-                "player1_hit_nb": self.players[0].ball_hit,
-                "player2_hit_nb": self.players[1].ball_hit,
-                "player1_perfect_hit_nb": 0,
-                "player2_perfect_hit_nb": 0,
-                "player1_score": self.players[0].score,
-                "player2_score": self.players[1].score,
-                "ball_max_speed": int(self.ball_max_speed),
-                "match_status": 1
-            }, default=str)
+
+            data=json.dumps(match_data, default=str)
         )
-        print("=========== REQUEST ===========")
-        print(r.status_code)
-        print(r.text)
+        print("=========== REQUEST ===========", file=sys.stderr)
+        print(r.status_code, file=sys.stderr)
+        print(r.text, file=sys.stderr)
 
     async def run(self):
         self.start_time = datetime.datetime.now(tz=tz.gettz('Europe/Paris'))

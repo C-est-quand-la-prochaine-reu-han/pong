@@ -18,7 +18,7 @@ from Player import Player
 
 games = [Game(),]
 
-def get_game(opponent, name):
+def get_game(opponent, name, tournament_id):
     global games
     game = None
 
@@ -40,13 +40,26 @@ def get_game(opponent, name):
         game = Game()
         game.players = []
         game.opponent = opponent
+        game.tournament_id = tournament_id
         games.append(game)
 
     return game
 
 async def pong(websocket:ServerProtocol):
+    token = None
+    tournament_id = -1
+
     opponent = await websocket.recv()
-    token = await websocket.recv()
+    temp = await websocket.recv()
+
+    if temp.startswith("tournament"):
+        tournament_id = int(temp.split(":")[1])
+    else:
+        token = temp
+    if token is None:
+        token = await websocket.recv()
+
+    print("Tournament is : " + str(tournament_id), file=sys.stderr)
 
     player = requests.get(
         "http://ft-transcendence-api-1.transcendence:" + str(os.environ.get("API_PORT")) + "/appong/api/user/me/",
@@ -62,7 +75,7 @@ async def pong(websocket:ServerProtocol):
     player = player.json()
     me = Player(connection=websocket, name=player['user_nick'], token=token, id=player['pk'])
 
-    game = get_game(opponent, me.name)
+    game = get_game(opponent, me.name, tournament_id)
     await me.register(game)
 
     time = datetime.datetime.now()
