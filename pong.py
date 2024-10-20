@@ -22,7 +22,11 @@ def get_game(opponent, name, tournament_id):
     global games
     game = None
 
-    if name is not 'bot':
+    print(name, file=sys.stderr)
+    print(opponent, file=sys.stderr)
+    print(tournament_id, file=sys.stderr)
+
+    if name != 'bot':
         # Join a game if one is available
         for g in games:
             if len(g.players) != 1:
@@ -74,7 +78,7 @@ async def pong(websocket:ServerProtocol):
         await websocket.send("who are you ? get out")
         return
     player = player.json()
-    me = Player(connection=websocket, name=player['user_nick'], token=token, id=player['pk'])
+    me = Player(connection=websocket, name=player['user']['username'], token=token, id=player['pk'])
 
     game = get_game(opponent, me.name, tournament_id)
     await me.register(game)
