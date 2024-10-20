@@ -9,6 +9,10 @@ import os
 import sys
 import json
 import datetime
+
+from dateutil import tz
+from datetime import timezone
+
 import requests
 
 class Game:
@@ -87,6 +91,7 @@ class Game:
             return
 
     def save_match(self):
+        tzone = tz.gettz('Europe/Paris')
         r = requests.post(
                 "http://ft-transcendence-api-1:" + str(os.environ.get("API_PORT")) + "/appong/api/match/",
             headers={
@@ -97,8 +102,8 @@ class Game:
             data=json.dumps({
                 "player1": self.players[0].id,
                 "player2": self.players[1].id,
-                # "match_start_time": self.start_time,
-                # "match_end_time": datetime.datetime.now(),
+                "match_start_time": self.start_time,
+                "match_end_time": datetime.datetime.now(tz=tzone),
                 "player1_hit_nb": 0,
                 "player2_hit_nb": 0,
                 "player1_perfect_hit_nb": 0,
@@ -107,7 +112,7 @@ class Game:
                 "player2_score": self.players[1].score,
                 "ball_max_speed": 0,
                 "match_status": 1
-            })
+            }, default=str)
         )
         print("========== REQUEST ==========", file=sys.stderr)
         print(r, file=sys.stderr)
@@ -115,7 +120,7 @@ class Game:
 
 
     async def run(self):
-        self.start_time = datetime.datetime.now()
+        self.start_time = datetime.datetime.now(tz=tz.gettz('Europe/Paris'))
         try:
             await self.start_game()
             pos = "pos:" + str(self.ball.line) + ":" + str(self.ball.column)
