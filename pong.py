@@ -93,18 +93,29 @@ async def pong(websocket:ServerProtocol):
         if delta.microseconds < 50000:
             continue
         time = datetime.datetime.now()
-        if message == "up" or message == "up\n":
-            me.line -= 10
-            if me.line < 0:
-                me.line = 0
-            else:
-                await game.broadcast(me.name + ":" + str(me.line) + ":" + str(me.column))
-        if message == "down" or message == "down\n":
-            me.line += 10
-            if me.line > 900:
-                me.line = 900
-            else:
-                await game.broadcast(me.name + ":" + str(me.line) + ":" + str(me.column))
+        try:
+            if message == "up" or message == "up\n":
+                me.line -= 10
+                if me.line < 0:
+                    me.line = 0
+                else:
+                    await game.broadcast(me.name + ":" + str(me.line) + ":" + str(me.column))
+            if message == "down" or message == "down\n":
+                me.line += 10
+                if me.line > 900:
+                    me.line = 900
+                else:
+                    await game.broadcast(me.name + ":" + str(me.line) + ":" + str(me.column))
+        except:
+            try:
+                await game.players[0].socket.send("winner:aborted")
+            except:
+                pass
+            try:
+                await game.players[1].socket.send("winner:aborted")
+            except:
+                pass
+            break
 
 
 async def main():
