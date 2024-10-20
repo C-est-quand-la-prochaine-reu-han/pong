@@ -17,6 +17,7 @@ class Player(Rectangle):
         self.width = 10
         self.token = token
         self.id = id
+        self.ball_hit = 0
 
     async def register(self, game:Game):
         game.players.append(self)

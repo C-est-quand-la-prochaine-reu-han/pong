@@ -1,19 +1,18 @@
+import os
+import sys
+import json
+import math
 import asyncio
+import requests
+import datetime
 
 from Ball import Ball
 from utils import Rectangle
 
-from websockets.exceptions import WebSocketException
-
-import os
-import sys
-import json
-import datetime
-
 from dateutil import tz
 from datetime import timezone
 
-import requests
+from websockets.exceptions import WebSocketException
 
 class Game:
     def __init__(self, score_max:int=10):
@@ -23,6 +22,7 @@ class Game:
         self.ball = Ball()
         self.score_max = 0
         self.start_time = None
+        self.ball_max_speed = 0
 
     async def start_game(self):
         await self.broadcast("start")
@@ -62,10 +62,10 @@ class Game:
         return time
 
     async def handle_victory(self):
-        if self.players[0].score == 10:
+        if self.players[0].score == 1:
             await self.broadcast("winner:" + self.players[0].name)
             return True
-        if self.players[1].score == 10:
+        if self.players[1].score == 1:
             await self.broadcast("winner:" + self.players[1].name)
             return True
         return False
@@ -76,6 +76,7 @@ class Game:
         if self.ball.column <= 100 and self.ball.line >= self.players[0].line and self.ball.line <= self.players[0].line + self.players[1].height:
             self.ball.speed_column = -self.ball.speed_column + 5
             self.ball.speed_line += (self.ball.line - self.players[0].line) / self.players[0].height * 100 - 50
+            self.players[0].ball_hit += 1
         elif self.ball.column <= 100:
             self.players[1].score += 1
             await self.broadcast("score:" + self.players[1].name + ":" + str(self.players[1].score))
@@ -84,6 +85,7 @@ class Game:
         if self.ball.column >= 900 and self.ball.line >= self.players[1].line and self.ball.line <= self.players[1].line + self.players[1].height:
             self.ball.speed_column = -self.ball.speed_column - 5
             self.ball.speed_line += (self.ball.line - self.players[1].line) / self.players[1].height * 100 - 50
+            self.players[1].ball_hit += 1
         elif self.ball.column >= 900:
             self.players[0].score += 1
             await self.broadcast("score:" + self.players[0].name + ":" + str(self.players[0].score))
@@ -104,20 +106,19 @@ class Game:
                 "player2": self.players[1].id,
                 "match_start_time": self.start_time,
                 "match_end_time": datetime.datetime.now(tz=tzone),
-                "player1_hit_nb": 0,
-                "player2_hit_nb": 0,
+                "player1_hit_nb": self.players[0].ball_hit,
+                "player2_hit_nb": self.players[1].ball_hit,
                 "player1_perfect_hit_nb": 0,
                 "player2_perfect_hit_nb": 0,
                 "player1_score": self.players[0].score,
                 "player2_score": self.players[1].score,
-                "ball_max_speed": 0,
+                "ball_max_speed": int(self.ball_max_speed),
                 "match_status": 1
             }, default=str)
         )
-        print("========== REQUEST ==========", file=sys.stderr)
-        print(r, file=sys.stderr)
-        print(r.text, file=sys.stderr)
-
+        print("=========== REQUEST ===========")
+        print(r.status_code)
+        print(r.text)
 
     async def run(self):
         self.start_time = datetime.datetime.now(tz=tz.gettz('Europe/Paris'))
@@ -133,6 +134,11 @@ class Game:
                 await self.broadcast(pos)
                 await self.broadcast(mov)
 
+                # Calculate the speed of the ball and update max_speed if required
+                speed = math.sqrt(pow(self.ball.speed_line, 2) + pow(self.ball.speed_column, 2))
+                if speed > self.ball_max_speed:
+                    self.ball_max_speed = speed
+
                 # Wait for the next collision
                 delay_until_collision = self.get_time_before_collision()
                 print("let's sleep for %s" % delay_until_collision)
@@ -141,9 +147,8 @@ class Game:
                 # Compute the new position and check for collision
                 self.ball.line = int(self.ball.line + self.ball.speed_line * delay_until_collision)
                 self.ball.column = int(self.ball.column + self.ball.speed_column * delay_until_collision)
-                print("Line: %s; Column: %s" % (self.ball.line, self.ball.column))
-
                 await self.handle_collision()
+
                 if await self.handle_victory():
                     self.save_match()
                     break
