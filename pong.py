@@ -22,15 +22,16 @@ def get_game(opponent, name):
     global games
     game = None
 
+    # Join a game if one is available
     for g in games:
-        if len(g.players) == 2:
+        if len(g.players) != 1:
             continue
         if opponent != "*":
             for p in g.players:
                 if p.name == opponent:
                     game = g
         else:
-            if g.opponent == "*" or g.opponent == name:
+            if (g.opponent == "*" or g.opponent == name) and g.players[0].name != "bot":
                 game = g
 
     # Or create one if nobody's already registered

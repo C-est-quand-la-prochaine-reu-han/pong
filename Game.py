@@ -25,6 +25,8 @@ class Game:
         self.ball_max_speed = 0
 
     async def start_game(self):
+        # await self.broadcast("time")
+        # asyncio.sleep(3)
         await self.broadcast("start")
         await self.players[0].socket.send("opponent:" + self.players[1].name)
         await self.players[0].socket.send("youare:1")
