@@ -65,10 +65,10 @@ class Game:
         return time
 
     async def handle_victory(self):
-        if self.players[0].score == 1:
+        if self.players[0].score == 10:
             await self.broadcast("winner:" + self.players[0].name)
             return True
-        if self.players[1].score == 1:
+        if self.players[1].score == 10:
             await self.broadcast("winner:" + self.players[1].name)
             return True
         return False
